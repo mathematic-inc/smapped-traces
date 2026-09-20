@@ -12,7 +12,7 @@ catalog:
   "@aws-sdk/client-s3": ^3.1119.0
   "@bufbuild/protobuf": ^2.14.0
   "@opentelemetry/api": ^1.9.1
-  "@opentelemetry/core": ^2.10.0
+  "@opentelemetry/core": ^2.11.0
   "@opentelemetry/resources": ^2.10.0
   "@opentelemetry/sdk-trace-base": ^2.10.0
   "@opentelemetry/semantic-conventions": ^1.43.0
