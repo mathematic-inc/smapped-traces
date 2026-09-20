@@ -4,6 +4,10 @@ allowBuilds:
   better-sqlite3: true
   esbuild: true
   sharp: true
+
+overrides:
+  sharp: 0.35.4
+
 catalog:
   "@aws-sdk/client-s3": ^3.1119.0
   "@bufbuild/protobuf": ^2.14.0
