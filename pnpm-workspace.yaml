@@ -17,7 +17,7 @@ catalog:
   "@opentelemetry/sdk-trace-base": ^2.10.0
   "@opentelemetry/semantic-conventions": ^1.43.0
   "@types/better-sqlite3": ^9.6.0
-  "@types/node": ^26.4.0
+  "@types/node": ^26.6.2
   better-sqlite3: ^13.0.3
   esbuild: ^0.28.2
   fast-glob: ^3.3.3
