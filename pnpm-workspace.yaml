@@ -9,15 +9,15 @@ overrides:
   sharp: 0.35.5
 
 catalog:
-  "@aws-sdk/client-s3": ^3.1131.0
+  "@aws-sdk/client-s3": ^3.1139.0
   "@bufbuild/protobuf": ^2.15.0
   "@opentelemetry/api": ^1.9.1
   "@opentelemetry/core": ^2.11.0
   "@opentelemetry/resources": ^2.11.0
-  "@opentelemetry/sdk-trace-base": ^2.10.0
+  "@opentelemetry/sdk-trace-base": ^2.11.0
   "@opentelemetry/semantic-conventions": ^1.43.0
   "@types/better-sqlite3": ^9.6.0
-  "@types/node": ^26.4.0
+  "@types/node": ^26.6.2
   better-sqlite3: ^13.0.3
   esbuild: ^0.28.2
   next: ^16.3.8
@@ -25,8 +25,8 @@ catalog:
   stacktrace-parser: ^0.1.11
   tinyglobby: ^0.2.17
   typescript: ^7.0.2
-  vite: ^8.2.2
-  vitest: ^4.1.11
+  vite: ^8.3.0
+  vitest: ^5.0.1
 minimumReleaseAgeExclude:
   - "@aws-sdk/client-s3@3.1119.0"
   - "@types/node@26.4.0"
