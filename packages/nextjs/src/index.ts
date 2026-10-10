@@ -92,12 +92,12 @@ export function withSourceMaps(nextConfig: NextConfig, options: SourceMapOptions
   nextConfig.compiler.runAfterProductionCompile = async (args) => {
     const { join } = await import("node:path");
     const { readFile, rm } = await import("node:fs/promises");
-    const { default: FastGlob } = await import("fast-glob");
+    const { glob } = await import("tinyglobby");
 
     const store = await options.store(args.distDir);
 
     const promises: Promise<void>[] = [];
-    for await (const mapFile of FastGlob.globStream(join(args.distDir, "**", "*.{m,c,}js.map"))) {
+    for (const mapFile of await glob(join(args.distDir, "**", "*.{m,c,}js.map"))) {
       promises.push(
         readFile(mapFile, "utf8").then(async (content) => {
           try {
