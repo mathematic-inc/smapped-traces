@@ -37,7 +37,7 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
-    "fast-glob": "catalog:"
+    "tinyglobby": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
