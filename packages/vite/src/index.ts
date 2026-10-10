@@ -1,8 +1,8 @@
 import { readFile, rm } from "node:fs/promises";
 import path from "node:path";
 
-import FastGlob from "fast-glob";
 import type { SourceMapStore } from "smapped-traces/store";
+import { glob } from "tinyglobby";
 import type { Plugin } from "vite";
 
 /**
@@ -143,9 +143,9 @@ export function sourceMaps(options: SourceMapsOptions = {}): Plugin {
 export async function collectSourceMaps(
   options: CollectSourceMapsOptions,
 ): Promise<CollectSourceMapsResult> {
-  const maps = await FastGlob("**/*.map", { cwd: options.dir, dot: true });
+  const maps = await glob("**/*.map", { cwd: options.dir, dot: true });
   const included = new Set(
-    await FastGlob(options.include ?? "**/*.{,c,m}js.map", {
+    await glob(options.include ?? "**/*.{,c,m}js.map", {
       cwd: options.dir,
       dot: true,
     }),
