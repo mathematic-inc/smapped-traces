@@ -20,7 +20,7 @@ catalog:
   "@types/node": ^26.6.2
   better-sqlite3: ^13.0.3
   esbuild: ^0.28.2
-  next: ^16.3.8
+  next: ^16.4.1
   source-map: ^0.8.0
   stacktrace-parser: ^0.1.11
   tinyglobby: ^0.2.17
