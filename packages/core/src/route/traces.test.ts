@@ -3,7 +3,7 @@ import type { Attributes, HrTime, SpanKind } from "@opentelemetry/api";
 import { SpanStatusCode } from "@opentelemetry/api";
 import { ExportResultCode } from "@opentelemetry/core";
 import { resourceFromAttributes } from "@opentelemetry/resources";
-import type { ReadableSpan, SpanExporter, TimedEvent } from "@opentelemetry/sdk-trace-base";
+import type { ReadableSpan, SpanExporter, TimedEvent } from "@opentelemetry/sdk-trace";
 import { ATTR_EXCEPTION_STACKTRACE } from "@opentelemetry/semantic-conventions";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

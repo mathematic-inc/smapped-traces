@@ -6,7 +6,7 @@
 import { toBinary } from "@bufbuild/protobuf";
 import { context, diag } from "@opentelemetry/api";
 import { type ExportResult, ExportResultCode, suppressTracing } from "@opentelemetry/core";
-import type { ReadableSpan, SpanExporter, TimedEvent } from "@opentelemetry/sdk-trace-base";
+import type { ReadableSpan, SpanExporter, TimedEvent } from "@opentelemetry/sdk-trace";
 import { ATTR_EXCEPTION_STACKTRACE } from "@opentelemetry/semantic-conventions";
 
 import { toTracesData } from "../convert.js";
@@ -29,13 +29,14 @@ type AvailabilityState = 0 | 1 | 2;
  * @example
  * ```ts
  * import { SourceMapSpanExporter } from 'smapped-traces/client'
- * import { BatchSpanProcessor, WebTracerProvider } from '@opentelemetry/sdk-trace-web'
+ * import { trace } from '@opentelemetry/api'
+ * import { BatchSpanProcessor, TracerProvider } from '@opentelemetry/sdk-trace'
  *
  * const exporter = new SourceMapSpanExporter('/api/sourcemaps')
- * const provider = new WebTracerProvider({
+ * const provider = new TracerProvider({
  *   spanProcessors: [new BatchSpanProcessor(exporter)],
  * })
- * provider.register()
+ * trace.setGlobalTracerProvider(provider)
  * ```
  */
 export class SourceMappedSpanExporter implements SpanExporter {

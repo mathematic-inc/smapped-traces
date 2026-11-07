@@ -10,7 +10,7 @@ import {
 } from "@opentelemetry/api";
 import type { InstrumentationScope } from "@opentelemetry/core";
 import { resourceFromAttributes } from "@opentelemetry/resources";
-import type { ReadableSpan, TimedEvent } from "@opentelemetry/sdk-trace-base";
+import type { ReadableSpan, TimedEvent } from "@opentelemetry/sdk-trace";
 import { describe, expect, it } from "vitest";
 
 import { fromTracesData, toTracesData } from "./convert.js";
@@ -288,6 +288,11 @@ describe("Attribute Type Conversion", () => {
   it("array of numbers round-trips", () => {
     const attrs = roundTripAttributes({ values: [1, 2, 3] });
     expect(attrs.values).toEqual([1, 2, 3]);
+  });
+
+  it("structured OpenTelemetry 3 attributes round-trip", () => {
+    const details = { request: { attempts: 2, cached: false }, tags: ["web", ["nested"]] };
+    expect(roundTripAttributes({ details }).details).toEqual(details);
   });
 
   it("mixed array with null/undefined filtered", () => {

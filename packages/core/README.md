@@ -24,15 +24,16 @@ npm install smapped-traces
 `SourceMappedSpanExporter` is a `SpanExporter` that enriches exception events with debug IDs extracted from bundler-injected globals (`_debugIds` from Turbopack, `__DEBUG_IDS__` from the TC39 spec / webpack), then sends traces as OTLP/protobuf via `fetch` (with `sendBeacon` fallback on page unload).
 
 ```ts
+import { trace } from "@opentelemetry/api";
 import { SourceMappedSpanExporter } from "smapped-traces/client";
-import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
-import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
+import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace";
+import { TracerProvider } from "@opentelemetry/sdk-trace";
 
 const exporter = new SourceMappedSpanExporter("/api/sourcemaps");
-const provider = new WebTracerProvider({
+const provider = new TracerProvider({
   spanProcessors: [new SimpleSpanProcessor(exporter)],
 });
-provider.register();
+trace.setGlobalTracerProvider(provider);
 ```
 
 ### Traces Handler
@@ -140,7 +141,7 @@ interface SourceMapStore {
 
 ## Requirements
 
-- OpenTelemetry SDK v2+ (`@opentelemetry/sdk-trace-base ^2.0.0`, `@opentelemetry/core ^2.0.0`)
+- OpenTelemetry SDK v2+ (`@opentelemetry/sdk-trace ^2.0.0`, `@opentelemetry/core ^2.0.0`)
 - `@opentelemetry/api ^1.9.0`
 
 ## License

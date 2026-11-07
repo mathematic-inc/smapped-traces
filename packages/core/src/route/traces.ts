@@ -1,5 +1,5 @@
 import { fromBinary } from "@bufbuild/protobuf";
-import type { ReadableSpan, SpanExporter, TimedEvent } from "@opentelemetry/sdk-trace-base";
+import type { ReadableSpan, SpanExporter, TimedEvent } from "@opentelemetry/sdk-trace";
 import { ATTR_EXCEPTION_STACKTRACE } from "@opentelemetry/semantic-conventions";
 
 import { fromTracesData } from "../convert.js";
