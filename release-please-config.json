@@ -21,5 +21,11 @@
       "release-type": "node"
     }
   },
-  "plugins": ["sentence-case"]
+  "plugins": [
+    {
+      "type": "node-workspace",
+      "updatePeerDependencies": true
+    },
+    "sentence-case"
+  ]
 }
