@@ -7,7 +7,7 @@
 import { create } from "@bufbuild/protobuf";
 import {
   type Attributes,
-  type AttributeValue,
+  type AnyValue as SdkAnyValue,
   type HrTime,
   type Link,
   SpanKind,
@@ -76,9 +76,9 @@ function hexToBytes(hex: string): Uint8Array {
 }
 
 /**
- * Convert an AttributeValue to protobuf AnyValue.
+ * Convert an SdkAnyValue to protobuf AnyValue.
  */
-function toAnyValue(value: AttributeValue): AnyValue {
+function toAnyValue(value: SdkAnyValue): AnyValue {
   if (typeof value === "string") {
     return create(AnyValueSchema, {
       value: { case: "stringValue", value },
@@ -351,9 +351,9 @@ function bytesToHex(bytes: Uint8Array): string {
 }
 
 /**
- * Convert protobuf AnyValue to SDK AttributeValue.
+ * Convert protobuf AnyValue to SDK SdkAnyValue.
  */
-function fromAnyValue(anyValue: AnyValue | undefined): AttributeValue | undefined {
+function fromAnyValue(anyValue: AnyValue | undefined): SdkAnyValue | undefined {
   if (!anyValue?.value) {
     return;
   }
@@ -368,7 +368,7 @@ function fromAnyValue(anyValue: AnyValue | undefined): AttributeValue | undefine
     case "doubleValue":
       return anyValue.value.value;
     case "arrayValue": {
-      const values: AttributeValue[] = [];
+      const values: SdkAnyValue[] = [];
       for (const item of anyValue.value.value.values) {
         const val = fromAnyValue(item);
         if (val !== undefined) {
