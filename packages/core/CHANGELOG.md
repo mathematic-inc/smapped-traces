@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/mathematic-inc/smapped-traces/compare/v0.1.3...v0.2.0) (2026-11-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** migrate to OpenTelemetry 3 and update dependencies ([#73](https://github.com/mathematic-inc/smapped-traces/issues/73))
+
+### Bug Fixes
+
+* **deps:** Migrate to OpenTelemetry 3 and update dependencies ([#73](https://github.com/mathematic-inc/smapped-traces/issues/73)) ([fa92f10](https://github.com/mathematic-inc/smapped-traces/commit/fa92f10ad54b54adc249f9abe210c2edda7c0047))
+* Replace deprecated APIs and tooling ([#75](https://github.com/mathematic-inc/smapped-traces/issues/75)) ([ce30f0a](https://github.com/mathematic-inc/smapped-traces/commit/ce30f0aedc3fc07deada0891c31168eaf43f4181))
+
 ## [0.1.3](https://github.com/mathematic-inc/smapped-traces/compare/v0.1.2...v0.1.3) (2026-05-06)
 
 

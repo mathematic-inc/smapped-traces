@@ -1,6 +1,6 @@
 {
   "name": "@smapped-traces/nextjs",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Next.js source map collection for smapped-traces",
   "keywords": [
     "nextjs",
@@ -52,6 +52,6 @@
     "smapped-traces": "workspace:^"
   },
   "engines": {
-    "node": ">=20.9.0"
+    "node": ">=22.15.0"
   }
 }
