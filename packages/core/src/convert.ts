@@ -17,7 +17,7 @@ import {
 import type { InstrumentationScope } from "@opentelemetry/core";
 import type { Resource } from "@opentelemetry/resources";
 import { resourceFromAttributes } from "@opentelemetry/resources";
-import type { ReadableSpan, TimedEvent } from "@opentelemetry/sdk-trace-base";
+import type { ReadableSpan, TimedEvent } from "@opentelemetry/sdk-trace";
 
 import {
   type AnyValue,
@@ -111,6 +111,11 @@ function toAnyValue(value: AttributeValue): AnyValue {
         case: "arrayValue",
         value: { values },
       },
+    });
+  }
+  if (value !== null && typeof value === "object") {
+    return create(AnyValueSchema, {
+      value: { case: "kvlistValue", value: { values: toKeyValues(value as Attributes) } },
     });
   }
   return create(AnyValueSchema, {});
@@ -363,15 +368,17 @@ function fromAnyValue(anyValue: AnyValue | undefined): AttributeValue | undefine
     case "doubleValue":
       return anyValue.value.value;
     case "arrayValue": {
-      const values: (string | number | boolean)[] = [];
+      const values: AttributeValue[] = [];
       for (const item of anyValue.value.value.values) {
         const val = fromAnyValue(item);
-        if (val !== undefined && !Array.isArray(val)) {
+        if (val !== undefined) {
           values.push(val);
         }
       }
-      return values as AttributeValue;
+      return values;
     }
+    case "kvlistValue":
+      return fromKeyValues(anyValue.value.value.values);
     case "bytesValue":
       return bytesToHex(anyValue.value.value);
     default:

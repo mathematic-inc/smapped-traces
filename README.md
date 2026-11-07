@@ -48,15 +48,16 @@ export default withSourceMaps(
 
 ```ts
 // instrumentation-client.ts
+import { trace } from "@opentelemetry/api";
 import { SourceMappedSpanExporter } from "smapped-traces/client";
-import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-base";
-import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
+import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace";
+import { TracerProvider } from "@opentelemetry/sdk-trace";
 
 const exporter = new SourceMappedSpanExporter("/api/sourcemaps");
-const provider = new WebTracerProvider({
+const provider = new TracerProvider({
   spanProcessors: [new SimpleSpanProcessor(exporter)],
 });
-provider.register();
+trace.setGlobalTracerProvider(provider);
 ```
 
 ### 4. Create the Route Handler
