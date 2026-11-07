@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.4](https://github.com/mathematic-inc/smapped-traces/compare/sqlite-v0.1.3...sqlite-v0.1.4) (2026-11-07)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * smapped-traces bumped to 0.2.0
+  * peerDependencies
+    * smapped-traces bumped to 0.2.0
+
 ## [0.1.3](https://github.com/mathematic-inc/smapped-traces/compare/sqlite-v0.1.2...sqlite-v0.1.3) (2026-08-27)
 
 

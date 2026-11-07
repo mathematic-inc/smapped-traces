@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.5](https://github.com/mathematic-inc/smapped-traces/compare/nextjs-v0.1.4...nextjs-v0.1.5) (2026-11-07)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * smapped-traces bumped to 0.2.0
+  * peerDependencies
+    * smapped-traces bumped to 0.2.0
+
 ## [0.1.4](https://github.com/mathematic-inc/smapped-traces/compare/nextjs-v0.1.3...nextjs-v0.1.4) (2026-08-27)
 
 
