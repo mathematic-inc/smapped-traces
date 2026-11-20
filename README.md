@@ -1,15 +1,15 @@
 # sourcemap-otel
 
 Source map resolution for OpenTelemetry errors. Automatically resolves minified
-stack traces back to original source locations using debug IDs.
+stacktraces back to original source locations using debug IDs.
 
 ## How It Works
 
 1. **Build time**: Source maps are collected and stored (locally or in a remote
    store)
-2. **Client side**: Exception stack traces are enriched with debug IDs from
+2. **Client side**: Exception stacktraces are enriched with debug IDs from
    bundler-injected globals (`_debugIds` or `__DEBUG_IDS__`)
-3. **Server side**: A request handler resolves minified stack traces using the
+3. **Server side**: A request handler resolves minified stacktraces using the
    stored source maps before forwarding to your OTEL collector
 
 ## Packages
@@ -200,7 +200,7 @@ The client exporter reads debug IDs from two global variables:
 
 | Global | Bundler | Format |
 | --- | --- | --- |
-| `globalThis._debugIds` | Turbopack | Stack trace keys → debug ID UUIDs |
+| `globalThis._debugIds` | Turbopack | Stacktrace keys → debug ID UUIDs |
 | `globalThis.__DEBUG_IDS__` | TC39 spec / webpack | URL keys → debug ID UUIDs |
 
 Both are checked and merged automatically.

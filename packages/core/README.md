@@ -1,6 +1,6 @@
 # smapped-traces
 
-Source map resolution for OpenTelemetry errors. Resolves minified stack traces
+Source map resolution for OpenTelemetry errors. Resolves minified stacktraces
 back to original source locations using debug IDs.
 
 ## Installation
@@ -43,7 +43,7 @@ trace.setGlobalTracerProvider(provider);
 ### Traces Handler
 
 `createTracesHandler` returns a `(Request) => Promise<Response>` handler that
-accepts OTLP/protobuf traces, resolves exception stack traces using source maps
+accepts OTLP/protobuf traces, resolves exception stacktraces using source maps
 from the provided store, and forwards the resolved spans to your exporter.
 
 ```ts
@@ -72,7 +72,7 @@ Deno.serve({ port: 8080 }, handler);
 
 ### Source Map Resolver
 
-`createSourceMapResolver` provides standalone stack trace resolution without a
+`createSourceMapResolver` provides standalone stacktrace resolution without a
 request handler. Useful when you need to resolve traces outside the HTTP request
 flow (e.g. in a queue consumer or background job).
 
