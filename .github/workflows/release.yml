@@ -10,8 +10,10 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+permissions: {}
+
 jobs:
-  meta:
+  validate-release:
     name: Validate release
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -22,10 +24,12 @@ jobs:
       is_prerelease: ${{ steps.parse.outputs.is_prerelease }}
       package_path: ${{ steps.parse.outputs.package_path }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - id: parse
+      - name: Validate tag and package version
+        id: parse
         shell: bash
         run: |
           set -euo pipefail
@@ -60,56 +64,61 @@ jobs:
             fi
           } >> "$GITHUB_OUTPUT"
 
-  build-artifacts:
-    name: Build
+  build-release-assets:
+    name: Build release assets
+    needs:
+      - validate-release
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: meta
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - name: Install pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - name: Install Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
           package-manager-cache: false
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Build
+      - name: Build packages
         env:
-          PACKAGE_PATH: ${{ needs.meta.outputs.package_path }}
+          PACKAGE_PATH: ${{ needs.validate-release.outputs.package_path }}
         run: |
           pnpm --filter smapped-traces run build
           pnpm --filter "./$PACKAGE_PATH" run build
-      - name: Pack
+      - name: Pack package
         shell: bash
         env:
-          PACKAGE_PATH: ${{ needs.meta.outputs.package_path }}
+          PACKAGE_PATH: ${{ needs.validate-release.outputs.package_path }}
         run: |
           set -euo pipefail
           mkdir -p dist
           pnpm --filter "./$PACKAGE_PATH" pack --pack-destination dist
-      - name: Upload artifact archive
+      - name: Upload release assets
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-assets
           path: dist/*.tgz
 
   create-release:
-    name: Publish GitHub Release
+    name: Create GitHub release
     needs:
-      - meta
-      - build-artifacts
+      - validate-release
+      - build-release-assets
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: release
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -124,8 +133,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ needs.meta.outputs.tag }}
-          IS_PRERELEASE: ${{ needs.meta.outputs.is_prerelease }}
+          RELEASE_TAG: ${{ needs.validate-release.outputs.tag }}
+          IS_PRERELEASE: ${{ needs.validate-release.outputs.is_prerelease }}
         run: |
           set -euo pipefail
           latest=false
@@ -141,21 +150,21 @@ jobs:
               --generate-notes --prerelease="$IS_PRERELEASE" --latest="$latest"
           fi
 
-      - name: Trigger release notes workflow
+      - name: Run release notes workflow
         env:
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-          RELEASE_TAG: ${{ needs.meta.outputs.tag }}
+          RELEASE_TAG: ${{ needs.validate-release.outputs.tag }}
         run: |
           gh workflow run release-notes.yml \
             --field tag="$RELEASE_TAG"
 
   attest-provenance:
-    environment: release
-    name: Attest Build Provenance
+    name: Attest build provenance
     needs:
       - create-release
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    environment: release
     permissions:
       contents: read
       id-token: write
@@ -175,7 +184,7 @@ jobs:
   publish-npm:
     name: Publish to npm
     needs:
-      - meta
+      - validate-release
       - create-release
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -184,11 +193,14 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - name: Install pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - name: Install Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
           package-manager-cache: false
@@ -198,6 +210,6 @@ jobs:
         with:
           name: release-assets
           path: dist
-      - name: Publish
+      - name: Publish to npm
         shell: bash
         run: npm publish ./dist/*.tgz --access public --provenance
