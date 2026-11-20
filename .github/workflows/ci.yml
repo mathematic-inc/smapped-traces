@@ -77,12 +77,8 @@ jobs:
     timeout-minutes: 5
     permissions: {}
     steps:
-      - name: Check that every other job passed
-        env:
-          NEEDS: ${{ toJSON(needs) }}
+      - name: Fail if any job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: |
-          jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<< "$NEEDS"
-          if ! jq -e 'all(.[]; .result == "success")' <<< "$NEEDS" > /dev/null; then
-            echo "::error::A job did not pass or did not run."
-            exit 1
-          fi
+          echo "::error::A job failed or was cancelled."
+          exit 1
