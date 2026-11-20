@@ -77,7 +77,7 @@ jobs:
     timeout-minutes: 5
     permissions: {}
     steps:
-      - name: Fail if any job failed or was cancelled
+      - name: Check every other job passed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: |
           echo "::error::A job failed or was cancelled."
