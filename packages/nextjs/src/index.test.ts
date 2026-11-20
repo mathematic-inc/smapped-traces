@@ -10,7 +10,7 @@ import { withSourceMaps } from "./index.js";
 it("collects nested JavaScript maps and preserves the existing compile hook", async () => {
   const dir = await mkdtemp(join(tmpdir(), "next-source-maps-"));
   const entries = new Map<string, string>();
-  const close = vi.fn();
+  const close = vi.fn<() => void>();
   const previousHook = vi.fn(async () => {});
   try {
     await mkdir(join(dir, "nested"));

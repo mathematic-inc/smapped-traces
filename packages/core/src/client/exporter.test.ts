@@ -2,7 +2,7 @@ import { fromBinary } from "@bufbuild/protobuf";
 import { SpanKind, SpanStatusCode } from "@opentelemetry/api";
 import { type ExportResult, ExportResultCode } from "@opentelemetry/core";
 import { resourceFromAttributes } from "@opentelemetry/resources";
-import type { ReadableSpan } from "@opentelemetry/sdk-trace";
+import type { ReadableSpan, SpanExporter, TimedEvent } from "@opentelemetry/sdk-trace";
 import { ATTR_EXCEPTION_STACKTRACE } from "@opentelemetry/semantic-conventions";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -12,7 +12,14 @@ import { SourceMappedSpanExporter } from "./exporter.js";
 
 const TEST_URL = "https://example.com/v1/traces";
 
-function createMockSpan(overrides: Partial<ReadableSpan> = {}): ReadableSpan {
+interface FetchInit {
+  readonly method: string;
+  readonly body: unknown;
+}
+
+function createMockSpan({
+  events = [],
+}: { readonly events?: readonly TimedEvent[] } = {}): ReadableSpan {
   return {
     name: "test-span",
     kind: SpanKind.INTERNAL,
@@ -28,7 +35,7 @@ function createMockSpan(overrides: Partial<ReadableSpan> = {}): ReadableSpan {
     status: { code: SpanStatusCode.UNSET },
     attributes: {},
     links: [],
-    events: [],
+    events: [...events],
     duration: [1, 0],
     ended: true,
     resource: resourceFromAttributes({}),
@@ -36,8 +43,7 @@ function createMockSpan(overrides: Partial<ReadableSpan> = {}): ReadableSpan {
     droppedAttributesCount: 0,
     droppedEventsCount: 0,
     droppedLinksCount: 0,
-    ...overrides,
-  } as ReadableSpan;
+  };
 }
 
 function createExceptionSpan(stacktrace: string): ReadableSpan {
@@ -55,11 +61,11 @@ function createExceptionSpan(stacktrace: string): ReadableSpan {
 }
 
 function exportAsync(
-  exporter: SourceMappedSpanExporter,
-  spans: ReadableSpan[],
+  exporter: SpanExporter,
+  spans: readonly ReadableSpan[],
 ): Promise<ExportResult> {
   return new Promise((resolve) => {
-    exporter.export(spans, resolve);
+    exporter.export([...spans], resolve);
   });
 }
 
@@ -80,11 +86,13 @@ afterEach(() => {
 describe("SourceMappedSpanExporter", () => {
   describe("State Machine - Fetch Mode (Initial)", () => {
     it("first export uses fetch with correct URL, POST method, and binary body", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        text: () => Promise.resolve(""),
-      });
+      const mockFetch = vi
+        .fn<(url: string, init: FetchInit) => Promise<unknown>>()
+        .mockResolvedValue({
+          ok: true,
+          status: 200,
+          text: () => Promise.resolve(""),
+        });
       vi.stubGlobal("fetch", mockFetch);
 
       const exporter = new SourceMappedSpanExporter(TEST_URL);
@@ -147,7 +155,9 @@ describe("SourceMappedSpanExporter", () => {
       });
       vi.stubGlobal("fetch", mockFetch);
 
-      const mockSendBeacon = vi.fn().mockReturnValue(true);
+      const mockSendBeacon = vi
+        .fn<(url: string, body: Uint8Array) => boolean>()
+        .mockReturnValue(true);
       vi.stubGlobal("navigator", { sendBeacon: mockSendBeacon });
 
       const exporter = new SourceMappedSpanExporter(TEST_URL);
@@ -531,14 +541,16 @@ describe("SourceMappedSpanExporter", () => {
       };
 
       let capturedBody: Uint8Array | undefined;
-      const mockFetch = vi.fn().mockImplementation((_url, init) => {
-        capturedBody = init.body;
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          text: () => Promise.resolve(""),
+      const mockFetch = vi
+        .fn<(url: string, init: { readonly body: Uint8Array }) => Promise<unknown>>()
+        .mockImplementation((_url, init) => {
+          capturedBody = init.body;
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            text: () => Promise.resolve(""),
+          });
         });
-      });
       vi.stubGlobal("fetch", mockFetch);
 
       const stacktrace = [

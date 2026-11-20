@@ -30,14 +30,14 @@ function createMemoryStore(): SourceMapStore & {
  * Creates an index source map with sections.
  */
 function createIndexSourceMap(
-  sections: Array<{
-    offset: { line: number; column: number };
-    map: {
-      sources: string[];
-      names: string[];
-      mappings: string;
+  sections: readonly {
+    readonly offset: { readonly line: number; readonly column: number };
+    readonly map: {
+      readonly sources: readonly string[];
+      readonly names: readonly string[];
+      readonly mappings: string;
     };
-  }>,
+  }[],
 ) {
   return {
     version: 3,
@@ -57,7 +57,11 @@ function createIndexSourceMap(
 /**
  * Creates a simple source map (non-index).
  */
-function createSimpleSourceMap(options: { sources: string[]; names: string[]; mappings: string }) {
+function createSimpleSourceMap(options: {
+  readonly sources: readonly string[];
+  readonly names: readonly string[];
+  readonly mappings: string;
+}) {
   return {
     version: 3,
     sources: options.sources,

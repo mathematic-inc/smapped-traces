@@ -20,6 +20,38 @@ const writeMap = async (relative: string, map: object): Promise<void> => {
   await writeFile(path, JSON.stringify(map));
 };
 
+// Vite types the plugin hooks as unions that need a plugin context. The plugin does not use `this`,
+// so the tests call the hooks as plain functions.
+function isConfigResolvedHook(value: unknown): value is (config: ResolvedConfig) => void {
+  return typeof value === "function";
+}
+
+function isConfigHook(
+  value: unknown,
+): value is (config: unknown, env: { readonly command: string; readonly mode: string }) => unknown {
+  return typeof value === "function";
+}
+
+function isCloseBundleHook(value: unknown): value is {
+  readonly order: string;
+  readonly sequential: boolean;
+  readonly handler: () => Promise<void>;
+} {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "order" in value &&
+    "sequential" in value &&
+    "handler" in value &&
+    typeof value.handler === "function"
+  );
+}
+
+// The tests give the plugin only the fields of the resolved configuration that it reads.
+function isResolvedConfig(value: object): value is ResolvedConfig {
+  return "build" in value && "logger" in value && "plugins" in value && "root" in value;
+}
+
 const remainingFiles = async (): Promise<string[]> => {
   const files = await readdir(tmpDir, { recursive: true });
   return files.filter((file) => file.endsWith(".map")).toSorted();
@@ -48,13 +80,13 @@ describe("sourceMaps plugin", () => {
   const resolveConfig = (
     plugin: Plugin,
     config: {
-      outDir?: string;
-      plugins?: { name: string }[];
-      ssr?: boolean;
+      readonly outDir?: string;
+      readonly plugins?: readonly { readonly name: string }[];
+      readonly ssr?: boolean;
     } = {},
   ): string[] => {
     const logs: string[] = [];
-    (plugin.configResolved as (config: ResolvedConfig) => void)({
+    const resolved = {
       build: { outDir: config.outDir ?? "dist", ssr: config.ssr ?? false },
       logger: {
         info: (message: string) => {
@@ -63,16 +95,20 @@ describe("sourceMaps plugin", () => {
       },
       plugins: config.plugins ?? [],
       root: tmpDir,
-    } as unknown as ResolvedConfig);
+    };
+    const hook: unknown = plugin.configResolved;
+    if (!isConfigResolvedHook(hook) || !isResolvedConfig(resolved)) {
+      throw new TypeError("The plugin has no configResolved hook");
+    }
+    hook(resolved);
     return logs;
   };
 
   const closeBundle = async (plugin: Plugin): Promise<void> => {
-    const hook = plugin.closeBundle as {
-      order: string;
-      sequential: boolean;
-      handler: () => Promise<void>;
-    };
+    const hook: unknown = plugin.closeBundle;
+    if (!isCloseBundleHook(hook)) {
+      throw new TypeError("The plugin has no closeBundle hook");
+    }
     expect(hook.order).toBe("post");
     expect(hook.sequential).toBe(true);
     await hook.handler();
@@ -85,9 +121,11 @@ describe("sourceMaps plugin", () => {
   it("configures hidden source maps with debug IDs", () => {
     const plugin = sourceMaps();
     expect(typeof plugin.config).toBe("function");
-    const config = (
-      plugin.config as (config: unknown, env: { command: string; mode: string }) => unknown
-    )({}, { command: "build", mode: "production" });
+    const hook: unknown = plugin.config;
+    if (!isConfigHook(hook)) {
+      throw new TypeError("The plugin has no config hook");
+    }
+    const config = hook({}, { command: "build", mode: "production" });
     expect(config).toEqual({
       build: {
         sourcemap: "hidden",

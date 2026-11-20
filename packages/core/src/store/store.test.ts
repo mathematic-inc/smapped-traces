@@ -106,6 +106,10 @@ describe("Store Handler", () => {
   });
 });
 
+function urlOf(input: string | URL | Request): string {
+  return input instanceof Request ? input.url : input.toString();
+}
+
 describe("HTTP Store + Handler Integration", () => {
   let backingStore: SourceMapStore;
   let httpStore: SourceMapStore;
@@ -165,7 +169,7 @@ describe("HTTP Store + Handler Integration", () => {
     await httpStore.put(id, content);
 
     const fetchMock = vi.mocked(globalThis.fetch);
-    const lastCallUrl = String(fetchMock.mock.calls.at(-1)![0]);
+    const lastCallUrl = urlOf(fetchMock.mock.calls.at(-1)![0]);
     expect(lastCallUrl).toContain(encodeURIComponent(id));
 
     const result = await httpStore.get(id);
@@ -189,7 +193,7 @@ describe("HTTP Store (unit)", () => {
     const store = createHttpStore("http://example.com/store/");
     await store.get("some-id");
 
-    const calledUrl = String(fetchMock.mock.calls[0]![0]);
+    const calledUrl = urlOf(fetchMock.mock.calls[0]![0]);
     expect(calledUrl).toBe("http://example.com/store/some-id");
     expect(calledUrl).not.toContain("//some-id");
   });

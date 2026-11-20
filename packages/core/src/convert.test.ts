@@ -21,38 +21,41 @@ import { TracesDataSchema } from "./generated/opentelemetry/proto/trace/v1/trace
 // ============================================================================
 
 function createMockSpan(
-  overrides: Partial<{
-    name: string;
-    kind: SpanKind;
-    traceId: string;
-    spanId: string;
-    parentSpanId: string;
-    traceFlags: number;
-    startTime: HrTime;
-    endTime: HrTime;
-    status: SpanStatus;
-    attributes: Attributes;
-    links: Link[];
-    events: TimedEvent[];
-    resource: ReturnType<typeof resourceFromAttributes>;
-    instrumentationScope: InstrumentationScope;
-    droppedAttributesCount: number;
-    droppedEventsCount: number;
-    droppedLinksCount: number;
-  }> = {},
+  overrides: Readonly<
+    Partial<{
+      readonly name: string;
+      readonly kind: SpanKind;
+      readonly traceId: string;
+      readonly spanId: string;
+      readonly parentSpanId: string;
+      readonly traceFlags: number;
+      readonly startTime: HrTime;
+      readonly endTime: HrTime;
+      readonly status: SpanStatus;
+      readonly attributes: Attributes;
+      readonly links: readonly Link[];
+      readonly events: readonly TimedEvent[];
+      readonly resource: ReturnType<typeof resourceFromAttributes>;
+      readonly instrumentationScope: InstrumentationScope;
+      readonly droppedAttributesCount: number;
+      readonly droppedEventsCount: number;
+      readonly droppedLinksCount: number;
+    }>
+  > = {},
 ): ReadableSpan {
   const traceId = overrides.traceId ?? "0af7651916cd43dd8448eb211c80319c";
   const spanId = overrides.spanId ?? "b7ad6b7169203331";
   const traceFlags = overrides.traceFlags ?? TraceFlags.SAMPLED;
 
-  const parentSpanContext = overrides.parentSpanId
-    ? {
-        traceId,
-        spanId: overrides.parentSpanId,
-        traceFlags,
-        isRemote: true,
-      }
-    : undefined;
+  const parentSpanContext =
+    overrides.parentSpanId === undefined
+      ? undefined
+      : {
+          traceId,
+          spanId: overrides.parentSpanId,
+          traceFlags,
+          isRemote: true,
+        };
 
   const resource = overrides.resource ?? resourceFromAttributes({ "service.name": "test-service" });
 
@@ -84,8 +87,8 @@ function createMockSpan(
     endTime,
     status: overrides.status ?? { code: SpanStatusCode.UNSET },
     attributes: overrides.attributes ?? {},
-    links: overrides.links ?? [],
-    events: overrides.events ?? [],
+    links: [...(overrides.links ?? [])],
+    events: [...(overrides.events ?? [])],
     duration,
     ended: true,
     resource,
@@ -299,7 +302,7 @@ describe("Attribute Type Conversion", () => {
     // The OTel AttributeValue type allows (string | number | boolean | null | undefined)[]
     // The conversion filters out null/undefined
     const attrs = roundTripAttributes({
-      mixed: ["a", null as unknown as string, "b", undefined as unknown as string],
+      mixed: ["a", null, "b", undefined],
     });
     expect(attrs.mixed).toEqual(["a", "b"]);
   });
