@@ -1,6 +1,7 @@
 # @smapped-traces/s3
 
-S3-compatible source map store for [smapped-traces](../../README.md). Works with AWS S3, Google Cloud Storage, and Cloudflare R2.
+S3-compatible source map store for [smapped-traces](../../README.md). Works with
+AWS S3, Google Cloud Storage, and Cloudflare R2.
 
 ## Installation
 
@@ -46,7 +47,8 @@ const store = createS3Store({
 
 ### Google Cloud Storage
 
-GCS provides an [S3-compatible endpoint](https://docs.cloud.google.com/storage/docs/interoperability):
+GCS provides an
+[S3-compatible endpoint](https://docs.cloud.google.com/storage/docs/interoperability):
 
 ```ts
 import { S3Client } from "@aws-sdk/client-s3";
@@ -111,7 +113,9 @@ export const POST = createTracesHandler({
 
 ### `createS3Store(options: S3StoreOptions): SourceMapStore`
 
-Returns a `SourceMapStore` that reads and writes source maps as objects in an S3-compatible bucket. Objects are stored as JSON with the debug ID as the key (optionally prefixed).
+Returns a `SourceMapStore` that reads and writes source maps as objects in an
+S3-compatible bucket. Objects are stored as JSON with the debug ID as the key
+(optionally prefixed).
 
 ### `S3StoreOptions`
 

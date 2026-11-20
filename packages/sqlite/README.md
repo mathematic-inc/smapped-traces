@@ -1,8 +1,10 @@
 # @smapped-traces/sqlite
 
-SQLite-backed source map store for [smapped-traces](../../packages/core/README.md).
+SQLite-backed source map store for
+[smapped-traces](../../packages/core/README.md).
 
-Suitable for local development, single-server deployments, and CI pipelines where source maps are collected and resolved on the same machine.
+Suitable for local development, single-server deployments, and CI pipelines
+where source maps are collected and resolved on the same machine.
 
 ## Installation
 
@@ -56,7 +58,8 @@ app.use("/sourcemaps", handler);
 |-----------|------|-------------|
 | `dbPath` | `string` | Path to the SQLite database file. Created on first write. |
 
-Returns a `SourceMapStore`. The table is created lazily on the first `put`. Calling `close()` releases the database connection.
+Returns a `SourceMapStore`. The table is created lazily on the first `put`.
+Calling `close()` releases the database connection.
 
 ## License
 

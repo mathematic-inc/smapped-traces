@@ -11,10 +11,3 @@ toolconfig {
       path = "profiles/org/.toolconfig.pkl"
     })
 }
-
-sections {
-  ["*"] {
-    // GitHub serves the discussion form; lychee checks offline.
-    lychee { exclude = List("^file://.*/discussions/new$") }
-  }
-}

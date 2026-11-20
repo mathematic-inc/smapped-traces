@@ -32,7 +32,8 @@ export default withSourceMaps(
 
 ### Remote HTTP store
 
-Deploy a storage service separately (see the [root README](../../README.md) for details), then point the build at it:
+Deploy a storage service separately (see the [root README](../../README.md) for
+details), then point the build at it:
 
 ```ts
 // next.config.mjs
@@ -92,13 +93,16 @@ Calling `withSourceMaps()` applies the following changes to your Next.js config:
 1. Enables Turbopack debug IDs (`turbopack.debugIds = true`)
 2. Enables production browser source maps (`productionBrowserSourceMaps = true`)
 3. Registers a `runAfterProductionCompile` hook that:
-   - Globs for all `.js.map`, `.mjs.map`, and `.cjs.map` files in the build output
+   - Globs for all `.js.map`, `.mjs.map`, and `.cjs.map` files in the build
+     output
    - Parses each source map and extracts its `debugId`
    - Optionally rewrites Turbopack source prefixes
-   - Uploads the source map to the provided store via `store.put(debugId, content)`
+   - Uploads the source map to the provided store via
+     `store.put(debugId, content)`
    - Deletes the `.map` files from the build output so they are not deployed
 
-Any existing `runAfterProductionCompile` hook is preserved and called after source map collection completes.
+Any existing `runAfterProductionCompile` hook is preserved and called after
+source map collection completes.
 
 ## Requirements
 
