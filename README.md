@@ -1,12 +1,16 @@
 # sourcemap-otel
 
-Source map resolution for OpenTelemetry errors. Automatically resolves minified stack traces back to original source locations using debug IDs.
+Source map resolution for OpenTelemetry errors. Automatically resolves minified
+stacktraces back to original source locations using debug IDs.
 
 ## How It Works
 
-1. **Build time**: Source maps are collected and stored (locally or in a remote store)
-2. **Client side**: Exception stack traces are enriched with debug IDs from bundler-injected globals (`_debugIds` or `__DEBUG_IDS__`)
-3. **Server side**: A request handler resolves minified stack traces using the stored source maps before forwarding to your OTEL collector
+1. **Build time**: Source maps are collected and stored (locally or in a remote
+   store)
+2. **Client side**: Exception stacktraces are enriched with debug IDs from
+   bundler-injected globals (`_debugIds` or `__DEBUG_IDS__`)
+3. **Server side**: A request handler resolves minified stacktraces using the
+   stored source maps before forwarding to your OTEL collector
 
 ## Packages
 
@@ -79,7 +83,8 @@ export const POST = createTracesHandler({
 
 ## Storage
 
-Source maps are accessed through the `SourceMapStore` interface. Built-in stores:
+Source maps are accessed through the `SourceMapStore` interface. Built-in
+stores:
 
 | Store | Package | Description |
 | --- | --- | --- |
@@ -195,22 +200,33 @@ The client exporter reads debug IDs from two global variables:
 
 | Global | Bundler | Format |
 | --- | --- | --- |
-| `globalThis._debugIds` | Turbopack | Stack trace keys → debug ID UUIDs |
+| `globalThis._debugIds` | Turbopack | Stacktrace keys → debug ID UUIDs |
 | `globalThis.__DEBUG_IDS__` | TC39 spec / webpack | URL keys → debug ID UUIDs |
 
 Both are checked and merged automatically.
 
 ## Requirements
 
-- Next.js 16+ (only for `@smapped-traces/nextjs` — uses `runAfterProductionCompile` hook)
+- Next.js 16+ (only for `@smapped-traces/nextjs` — uses
+  `runAfterProductionCompile` hook)
 - OpenTelemetry SDK v2+
 
 ## Contributing
 
-We review change proposals in Discussions before code. [Start a Discussion](https://github.com/mathematic-inc/smapped-traces/discussions/new) and wait for a maintainer's review. If we accept the proposal, a Mathematic maintainer or agent will implement it and open the pull request. When Mathematic implements a proposal, the implementation PR will link to the Discussion and credit its original author. GitHub limits pull request creation to Mathematic maintainers and repository collaborators with write, maintain, or admin access, plus authorized maintenance agents. See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full process.
+We review change proposals in Discussions before code.
+[Start a Discussion](https://github.com/mathematic-inc/smapped-traces/discussions/new)
+and wait for a maintainer's review. If we accept the proposal, a Mathematic
+maintainer or agent will implement it and open the pull request. When Mathematic
+implements a proposal, the implementation PR will link to the Discussion and
+credit its original author. GitHub limits pull request creation to Mathematic
+maintainers and repository collaborators with write, maintain, or admin access,
+plus authorized maintenance agents. See [CONTRIBUTING.md](./CONTRIBUTING.md) for
+the full process.
 
 ## License
 
 Apache-2.0
 
-> This project is free and open-source work by a 501(c)(3) non-profit. If you find it useful, please consider [donating](https://github.com/sponsors/mathematic-inc).
+> This project is free and open-source work by a 501(c)(3) non-profit. If you
+> find it useful, please consider
+> [donating](https://github.com/sponsors/mathematic-inc).

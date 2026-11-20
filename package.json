@@ -8,10 +8,6 @@
   "scripts": {
     "audit": "pnpm audit --audit-level high",
     "build": "pnpm --recursive run build",
-    "check": "oxlint --deny-warnings . && oxfmt --check .",
-    "fix": "oxlint --fix --deny-warnings . && oxfmt --write .",
-    "format": "oxfmt --write .",
-    "lint": "oxlint --deny-warnings .",
     "test": "pnpm --recursive run test",
     "typecheck": "pnpm --recursive run typecheck"
   },

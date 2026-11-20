@@ -2,28 +2,21 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { extractDebugIdsFromStack, getDebugIdsByUrl, resetDebugIdCache } from "./debug-ids.js";
 
-interface DebugIdGlobals {
-  __DEBUG_IDS__?: Record<string, string>;
-  _debugIds?: Record<string, string>;
-}
-
-function g(): DebugIdGlobals {
-  return globalThis as unknown as DebugIdGlobals;
-}
+const globals: Record<string, unknown> = globalThis;
 
 describe("debug-ids", () => {
-  const originalDebugIds = g()._debugIds;
-  const originalDebugIdsSpec = g().__DEBUG_IDS__;
+  const originalDebugIds = globals._debugIds;
+  const originalDebugIdsSpec = globals.__DEBUG_IDS__;
 
   beforeEach(() => {
-    g()._debugIds = undefined;
-    g().__DEBUG_IDS__ = undefined;
+    globals._debugIds = undefined;
+    globals.__DEBUG_IDS__ = undefined;
     resetDebugIdCache();
   });
 
   afterEach(() => {
-    g()._debugIds = originalDebugIds;
-    g().__DEBUG_IDS__ = originalDebugIdsSpec;
+    globals._debugIds = originalDebugIds;
+    globals.__DEBUG_IDS__ = originalDebugIdsSpec;
     resetDebugIdCache();
   });
 
@@ -36,7 +29,7 @@ describe("debug-ids", () => {
 
     it("extracts URLs from stack patterns in _debugIds", () => {
       const debugId = "550e8400-e29b-41d4-a716-446655440000";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172\n    at Object.<anonymous>":
           debugId,
       };
@@ -48,7 +41,7 @@ describe("debug-ids", () => {
 
     it("reads URL keys directly from __DEBUG_IDS__", () => {
       const debugId = "660e8400-e29b-41d4-a716-446655440000";
-      g().__DEBUG_IDS__ = {
+      globals.__DEBUG_IDS__ = {
         "http://localhost:3000/_next/static/chunks/app.js": debugId,
       };
 
@@ -60,10 +53,10 @@ describe("debug-ids", () => {
     it("merges entries from both globals", () => {
       const debugId1 = "550e8400-e29b-41d4-a716-446655440001";
       const debugId2 = "660e8400-e29b-41d4-a716-446655440002";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172": debugId1,
       };
-      g().__DEBUG_IDS__ = {
+      globals.__DEBUG_IDS__ = {
         "http://localhost:3000/_next/static/chunks/vendor.js": debugId2,
       };
 
@@ -76,10 +69,10 @@ describe("debug-ids", () => {
     it("_debugIds takes precedence over __DEBUG_IDS__ for the same URL", () => {
       const turbopackId = "550e8400-e29b-41d4-a716-446655440001";
       const specId = "660e8400-e29b-41d4-a716-446655440002";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172": turbopackId,
       };
-      g().__DEBUG_IDS__ = {
+      globals.__DEBUG_IDS__ = {
         "http://localhost:3000/_next/static/chunks/page.js": specId,
       };
 
@@ -91,7 +84,7 @@ describe("debug-ids", () => {
     it("handles multiple debug ID mappings", () => {
       const debugId1 = "550e8400-e29b-41d4-a716-446655440001";
       const debugId2 = "550e8400-e29b-41d4-a716-446655440002";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172": debugId1,
         "Error\n    at http://localhost:3000/_next/static/chunks/main.js:5:42": debugId2,
       };
@@ -104,7 +97,7 @@ describe("debug-ids", () => {
 
     it("caches results and returns same map for subsequent calls", () => {
       const debugId = "550e8400-e29b-41d4-a716-446655440000";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172": debugId,
       };
 
@@ -116,16 +109,16 @@ describe("debug-ids", () => {
 
     it("invalidates cache when new _debugIds entries are added", () => {
       const debugId1 = "550e8400-e29b-41d4-a716-446655440001";
-      g()._debugIds = {
+      const debugIds: Record<string, string> = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172": debugId1,
       };
+      globals._debugIds = debugIds;
 
       const result1 = getDebugIdsByUrl();
       expect(result1.size).toBe(1);
 
       const debugId2 = "550e8400-e29b-41d4-a716-446655440002";
-      g()._debugIds!["Error\n    at http://localhost:3000/_next/static/chunks/main.js:5:42"] =
-        debugId2;
+      debugIds["Error\n    at http://localhost:3000/_next/static/chunks/main.js:5:42"] = debugId2;
 
       const result2 = getDebugIdsByUrl();
       expect(result2.size).toBe(2);
@@ -133,14 +126,15 @@ describe("debug-ids", () => {
     });
 
     it("invalidates cache when new __DEBUG_IDS__ entries are added", () => {
-      g().__DEBUG_IDS__ = {
+      const debugIds: Record<string, string> = {
         "http://localhost:3000/_next/static/chunks/page.js": "550e8400-e29b-41d4-a716-446655440001",
       };
+      globals.__DEBUG_IDS__ = debugIds;
 
       const result1 = getDebugIdsByUrl();
       expect(result1.size).toBe(1);
 
-      g().__DEBUG_IDS__!["http://localhost:3000/_next/static/chunks/main.js"] =
+      debugIds["http://localhost:3000/_next/static/chunks/main.js"] =
         "550e8400-e29b-41d4-a716-446655440002";
 
       const result2 = getDebugIdsByUrl();
@@ -150,7 +144,7 @@ describe("debug-ids", () => {
 
     it("handles complex stack traces with multiple URLs per pattern", () => {
       const debugId = "550e8400-e29b-41d4-a716-446655440000";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172\n    at http://localhost:3000/_next/static/chunks/other.js:10:5":
           debugId,
       };
@@ -172,7 +166,7 @@ describe("debug-ids", () => {
 
     it("extracts debug IDs from _debugIds", () => {
       const debugId = "550e8400-e29b-41d4-a716-446655440000";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172": debugId,
       };
 
@@ -186,7 +180,7 @@ describe("debug-ids", () => {
 
     it("extracts debug IDs from __DEBUG_IDS__", () => {
       const debugId = "660e8400-e29b-41d4-a716-446655440000";
-      g().__DEBUG_IDS__ = {
+      globals.__DEBUG_IDS__ = {
         "http://localhost:3000/_next/static/chunks/app.js": debugId,
       };
 
@@ -200,10 +194,10 @@ describe("debug-ids", () => {
     it("extracts debug IDs from both globals in one stack trace", () => {
       const debugId1 = "550e8400-e29b-41d4-a716-446655440001";
       const debugId2 = "660e8400-e29b-41d4-a716-446655440002";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172": debugId1,
       };
-      g().__DEBUG_IDS__ = {
+      globals.__DEBUG_IDS__ = {
         "http://localhost:3000/_next/static/chunks/vendor.js": debugId2,
       };
 
@@ -219,7 +213,7 @@ describe("debug-ids", () => {
 
     it("returns unique debug IDs only", () => {
       const debugId = "550e8400-e29b-41d4-a716-446655440000";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172": debugId,
       };
 
@@ -236,7 +230,7 @@ describe("debug-ids", () => {
     it("returns multiple debug IDs when different files are in stack", () => {
       const debugId1 = "550e8400-e29b-41d4-a716-446655440001";
       const debugId2 = "550e8400-e29b-41d4-a716-446655440002";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172": debugId1,
         "Error\n    at http://localhost:3000/_next/static/chunks/main.js:5:42": debugId2,
       };
@@ -253,7 +247,7 @@ describe("debug-ids", () => {
 
     it("ignores files not in the debug ID mapping", () => {
       const debugId = "550e8400-e29b-41d4-a716-446655440000";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/page.js:1:172": debugId,
       };
 
@@ -266,7 +260,7 @@ describe("debug-ids", () => {
 
     it("handles V8 style stack traces", () => {
       const debugId = "550e8400-e29b-41d4-a716-446655440000";
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/app.js:10:20": debugId,
       };
 
@@ -279,7 +273,7 @@ describe("debug-ids", () => {
     });
 
     it("handles empty stack traces", () => {
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/app.js:10:20":
           "550e8400-e29b-41d4-a716-446655440000",
       };
@@ -289,7 +283,7 @@ describe("debug-ids", () => {
     });
 
     it("handles stack traces with no file references", () => {
-      g()._debugIds = {
+      globals._debugIds = {
         "Error\n    at http://localhost:3000/_next/static/chunks/app.js:10:20":
           "550e8400-e29b-41d4-a716-446655440000",
       };

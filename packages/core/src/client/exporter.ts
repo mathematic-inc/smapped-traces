@@ -47,7 +47,7 @@ export class SourceMappedSpanExporter implements SpanExporter {
     this.#url = url;
   }
 
-  export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
+  export(spans: readonly ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
     if (this.#available === 0) {
       diag.debug("Exporter is disabled, returning success");
       resultCallback({ code: ExportResultCode.SUCCESS });
@@ -66,7 +66,7 @@ export class SourceMappedSpanExporter implements SpanExporter {
       return;
     }
 
-    (async () => {
+    void (async () => {
       diag.debug("Exporter is using fetch");
       const response = await context.with(suppressTracing(context.active()), () =>
         fetch(this.#url, { method: "POST", body }),
@@ -94,7 +94,7 @@ export class SourceMappedSpanExporter implements SpanExporter {
   /**
    * Attaches debug IDs to exception events in spans.
    */
-  #attachDebugIds(spans: ReadableSpan[]): void {
+  #attachDebugIds(spans: readonly ReadableSpan[]): void {
     for (const span of spans) {
       for (const event of span.events) {
         this.#enrichExceptionEvent(event);

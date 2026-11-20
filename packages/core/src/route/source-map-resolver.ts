@@ -5,7 +5,7 @@
  * back to their original source locations using a {@link SourceMapStore}.
  */
 
-import { type RawIndexMap, type RawSourceMap, SourceMapConsumer } from "source-map";
+import { SourceMapConsumer } from "source-map";
 import { parse as parseStackTrace, type StackFrame } from "stacktrace-parser";
 
 import type { SourceMapStore } from "../store/types.js";
@@ -15,18 +15,23 @@ import type { SourceMapStore } from "../store/types.js";
  */
 export interface SourceMapResolverOptions {
   /** Maximum number of source map consumers to cache. */
-  maxCacheSize?: number;
+  readonly maxCacheSize?: number;
   /** Source map storage backend. */
-  store: SourceMapStore;
+  readonly store: SourceMapStore;
+}
+
+function nonEmpty(name: string | null): string | null {
+  return name === "" ? null : name;
 }
 
 /**
  * Formats a single frame in V8 style.
  */
 function formatFrame(frame: StackFrame): string {
-  const funcPart = frame.methodName
-    ? `${frame.methodName} (${frame.file}:${frame.lineNumber}:${frame.column})`
-    : `${frame.file}:${frame.lineNumber}:${frame.column}`;
+  const funcPart =
+    frame.methodName === ""
+      ? `${frame.file}:${frame.lineNumber}:${frame.column}`
+      : `${frame.methodName} (${frame.file}:${frame.lineNumber}:${frame.column})`;
   return `    at ${funcPart}`;
 }
 
@@ -36,8 +41,8 @@ function formatFrame(frame: StackFrame): string {
  */
 export function formatStackTrace(
   originalTrace: string,
-  originalFrames: StackFrame[],
-  resolvedFrames: Map<number, StackFrame>,
+  originalFrames: readonly StackFrame[],
+  resolvedFrames: ReadonlyMap<number, StackFrame>,
 ): string {
   const lines = originalTrace.split("\n");
   const result: string[] = [];
@@ -99,7 +104,7 @@ class SourceMapCache {
 
     while (this.#order.length >= this.#maxSize) {
       const oldest = this.#order.shift();
-      if (oldest) {
+      if (oldest !== undefined && oldest !== "") {
         const oldConsumer = this.#cache.get(oldest);
         if (oldConsumer) {
           oldConsumer.destroy();
@@ -125,8 +130,8 @@ class SourceMapCache {
  * Source map resolver that uses a {@link SourceMapStore} for storage.
  */
 export interface SourceMapResolver {
-  close(): void;
-  resolveStackTrace(stackTrace: string, debugIds: string[]): Promise<string>;
+  readonly close: () => void;
+  readonly resolveStackTrace: (stackTrace: string, debugIds: readonly string[]) => Promise<string>;
 }
 
 /**
@@ -136,7 +141,9 @@ export function createSourceMapResolver(options: SourceMapResolverOptions): Sour
   const { store, maxCacheSize = 50 } = options;
   const cache = new SourceMapCache(maxCacheSize);
 
-  async function loadSourceMaps(debugIds: string[]): Promise<Map<string, SourceMapConsumer>> {
+  async function loadSourceMaps(
+    debugIds: readonly string[],
+  ): Promise<Map<string, SourceMapConsumer>> {
     const result = new Map<string, SourceMapConsumer>();
     const uncachedIds: string[] = [];
 
@@ -157,11 +164,10 @@ export function createSourceMapResolver(options: SourceMapResolverOptions): Sour
       uncachedIds.map(async (debugId) => {
         try {
           const content = await store.get(debugId);
-          if (!content) {
+          if (content === null || content === "") {
             return;
           }
-          const rawSourceMap = JSON.parse(content) as RawSourceMap | RawIndexMap;
-          const consumer = await new SourceMapConsumer(rawSourceMap);
+          const consumer = await new SourceMapConsumer(content);
           cache.set(debugId, consumer);
           result.set(debugId, consumer);
         } catch {
@@ -185,9 +191,9 @@ export function createSourceMapResolver(options: SourceMapResolverOptions): Sour
         column: columnNumber - 1,
       });
 
-      if (original.source) {
+      if (original.source !== null && original.source !== "") {
         return {
-          methodName: original.name || methodName || "<unknown>",
+          methodName: nonEmpty(original.name) ?? methodName ?? "<unknown>",
           file: original.source,
           lineNumber: original.line ?? lineNumber,
           column: (original.column ?? columnNumber - 1) + 1,
@@ -202,7 +208,7 @@ export function createSourceMapResolver(options: SourceMapResolverOptions): Sour
 
   function resolveFrame(
     frame: StackFrame,
-    consumers: Map<string, SourceMapConsumer>,
+    consumers: ReadonlyMap<string, SourceMapConsumer>,
   ): StackFrame | null {
     const lineNumber = frame.lineNumber ?? 0;
     const columnNumber = frame.column ?? 0;
@@ -212,7 +218,7 @@ export function createSourceMapResolver(options: SourceMapResolverOptions): Sour
         consumer,
         lineNumber,
         columnNumber,
-        frame.methodName || null,
+        nonEmpty(frame.methodName),
       );
       if (resolved) {
         return resolved;
@@ -222,7 +228,10 @@ export function createSourceMapResolver(options: SourceMapResolverOptions): Sour
     return null;
   }
 
-  async function resolveStackTrace(stackTrace: string, debugIds: string[]): Promise<string> {
+  async function resolveStackTrace(
+    stackTrace: string,
+    debugIds: readonly string[],
+  ): Promise<string> {
     if (debugIds.length === 0) {
       return stackTrace;
     }

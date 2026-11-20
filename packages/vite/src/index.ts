@@ -12,7 +12,7 @@ export interface CollectSourceMapsOptions {
   /**
    * Build output directory to sweep for `.map` files.
    */
-  dir: string;
+  readonly dir: string;
   /**
    * Glob pattern(s), relative to `dir`, selecting the source maps to store.
    * Defaults to every JavaScript source map. A selected map without a
@@ -24,7 +24,7 @@ export interface CollectSourceMapsOptions {
    * server bundle), so narrow the selection to the output that still carries
    * them, such as `"client/**\/*.{,c,m}js.map"`.
    */
-  include?: string | string[];
+  readonly include?: string | readonly string[];
   /**
    * Factory that creates a source map store. Called with `dir` so the store
    * can be placed relative to the build output.
@@ -38,7 +38,7 @@ export interface CollectSourceMapsOptions {
    * store: () => createHttpStore("https://sourcemaps.internal")
    * ```
    */
-  store: (dir: string) => SourceMapStore | Promise<SourceMapStore>;
+  readonly store: (dir: string) => SourceMapStore | Promise<SourceMapStore>;
 }
 
 /**
@@ -71,7 +71,7 @@ export interface SourceMapsOptions {
    * (for example SvelteKit `adapter-node`'s `"build"`); relative paths
    * resolve against the project root.
    */
-  collect?: Omit<CollectSourceMapsOptions, "dir"> & { dir?: string };
+  readonly collect?: Omit<CollectSourceMapsOptions, "dir"> & { readonly dir?: string };
 }
 
 /**
@@ -109,10 +109,13 @@ export function sourceMaps(options: SourceMapsOptions = {}): Plugin {
       // SvelteKit builds the client, then the server, and runs the adapter at
       // the end of the server compile pass; only that pass sees the deploy
       // directory.
+      const isClientPass = config.build.ssr === false || config.build.ssr === "";
       skip =
         config.plugins.some((plugin) => plugin.name === "vite-plugin-sveltekit-compile") &&
-        !config.build.ssr;
-      info = (message) => config.logger.info(message);
+        isClientPass;
+      info = (message) => {
+        config.logger.info(message);
+      };
     },
     closeBundle: {
       order: "post",
@@ -145,7 +148,7 @@ export async function collectSourceMaps(
 ): Promise<CollectSourceMapsResult> {
   const maps = await glob("**/*.map", { cwd: options.dir, dot: true });
   const included = new Set(
-    await glob(options.include ?? "**/*.{,c,m}js.map", {
+    await glob([options.include ?? "**/*.{,c,m}js.map"].flat(), {
       cwd: options.dir,
       dot: true,
     }),
@@ -161,7 +164,11 @@ export async function collectSourceMaps(
         .filter((relative) => included.has(relative))
         .map(async (relative) => {
           const content = await readFile(path.join(options.dir, relative), "utf8");
-          const { debugId } = JSON.parse(content) as { debugId?: unknown };
+          const parsed: unknown = JSON.parse(content);
+          const debugId =
+            typeof parsed === "object" && parsed !== null && "debugId" in parsed
+              ? parsed.debugId
+              : undefined;
           if (typeof debugId === "string" && debugId.length > 0) {
             await store.put(debugId, content);
             stored += 1;
@@ -170,9 +177,10 @@ export async function collectSourceMaps(
           }
         }),
     );
-    const failure = results.find((result) => result.status === "rejected");
-    if (failure) {
-      throw failure.reason;
+    for (const result of results) {
+      if (result.status === "rejected") {
+        throw result.reason;
+      }
     }
     await Promise.all(maps.map((relative) => rm(path.join(options.dir, relative))));
   } finally {

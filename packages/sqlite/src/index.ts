@@ -12,9 +12,7 @@ export function createSqliteStore(dbPath: string): SourceMapStore {
   let tableCreated = false;
 
   function ensureDb(): Database.Database {
-    if (!db) {
-      db = new Database(dbPath);
-    }
+    db ??= new Database(dbPath);
     return db;
   }
 
@@ -32,8 +30,10 @@ export function createSqliteStore(dbPath: string): SourceMapStore {
       try {
         const database = ensureDb();
         const row = database
-          .prepare("SELECT json(content) as content FROM sourcemaps WHERE debugId = ?")
-          .get(debugId) as { content: string } | undefined;
+          .prepare<[string], { content: string }>(
+            "SELECT json(content) as content FROM sourcemaps WHERE debugId = ?",
+          )
+          .get(debugId);
         return row?.content ?? null;
       } catch {
         return null;

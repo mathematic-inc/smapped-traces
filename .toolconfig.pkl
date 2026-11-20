@@ -1,0 +1,118 @@
+amends
+  "package://github.com/mathematic-inc/toolconfig/releases/download/v2026.11.6/toolconfig@2026.11.6#/ToolConfig.pkl"
+
+root = true
+
+toolconfig {
+  `extends` =
+    List(new Repository {
+      git = "https://github.com/mathematic-inc/toolconfig-config.git"
+      rev = "fc76ddad46c14a7b7fe03bf117a92ede11ea0dfb"
+      path = "profiles/org/.toolconfig.pkl"
+    })
+}
+
+sections {
+  ["*"] {
+    oxlint {
+      rules {
+        ["typescript/prefer-readonly-parameter-types"] {
+          "deny"
+          new {
+            allow =
+              List(
+                // The rule does not see these standard library types as readonly.
+                new Dynamic {
+                  from = "lib"
+                  name =
+                    List(
+                      "ReadonlyMap",
+                      "Request",
+                      "RequestInit",
+                      "URL",
+                      "Uint8Array",
+                    )
+                },
+                // The OpenTelemetry API declares mutable types.
+                new Dynamic {
+                  from = "package"
+                  package = "@opentelemetry/api"
+                  name = List("Attributes", "HrTime", "Link", "SpanStatus")
+                },
+                // The OpenTelemetry SDK declares mutable types.
+                new Dynamic {
+                  from = "package"
+                  package = "@opentelemetry/sdk-trace"
+                  name = List("ReadableSpan", "SpanExporter", "TimedEvent")
+                },
+                // The OpenTelemetry resource type is mutable.
+                new Dynamic {
+                  from = "package"
+                  package = "@opentelemetry/resources"
+                  name = List("Resource")
+                },
+                // The OpenTelemetry core export result is mutable.
+                new Dynamic {
+                  from = "package"
+                  package = "@opentelemetry/core"
+                  name = List("ExportResult")
+                },
+                // stacktrace-parser declares a mutable frame type.
+                new Dynamic {
+                  from = "package"
+                  package = "stacktrace-parser"
+                  name = List("StackFrame")
+                },
+                // source-map declares mutable raw map types and a consumer class with mutable state.
+                new Dynamic {
+                  from = "package"
+                  package = "source-map"
+                  name = List("RawIndexMap", "RawSection", "RawSourceMap", "SourceMapConsumer")
+                },
+                // Protobuf-ES generates mutable message types.
+                new Dynamic {
+                  from = "file"
+                  path = "src/generated/opentelemetry/proto/common/v1/common_pb.ts"
+                  name = List("AnyValue", "InstrumentationScope", "KeyValue")
+                },
+                new Dynamic {
+                  from = "file"
+                  path = "src/generated/opentelemetry/proto/resource/v1/resource_pb.ts"
+                  name = List("Resource")
+                },
+                new Dynamic {
+                  from = "file"
+                  path = "src/generated/opentelemetry/proto/trace/v1/trace_pb.ts"
+                  name = List("Span", "Span_Event", "Span_Link", "Status", "TracesData")
+                },
+                // Vite declares mutable types.
+                new Dynamic {
+                  from = "package"
+                  package = "vite"
+                  name = List("Plugin", "ResolvedConfig")
+                },
+                // better-sqlite3 declares a mutable class.
+                new Dynamic {
+                  from = "package"
+                  package = "better-sqlite3"
+                  name = List("Database")
+                },
+                // The AWS SDK client is a mutable class.
+                new Dynamic {
+                  from = "package"
+                  package = "@aws-sdk/client-s3"
+                  name = List("S3Client")
+                },
+                // Next.js declares a mutable configuration type.
+                new Dynamic {
+                  from = "package"
+                  package = "next"
+                  name = List("NextConfig")
+                },
+              )
+          }
+        }
+      }
+    }
+  }
+}

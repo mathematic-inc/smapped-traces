@@ -1,6 +1,7 @@
 # smapped-traces
 
-Source map resolution for OpenTelemetry errors. Resolves minified stack traces back to original source locations using debug IDs.
+Source map resolution for OpenTelemetry errors. Resolves minified stacktraces
+back to original source locations using debug IDs.
 
 ## Installation
 
@@ -21,7 +22,10 @@ npm install smapped-traces
 
 ### Client Exporter
 
-`SourceMappedSpanExporter` is a `SpanExporter` that enriches exception events with debug IDs extracted from bundler-injected globals (`_debugIds` from Turbopack, `__DEBUG_IDS__` from the TC39 spec / webpack), then sends traces as OTLP/protobuf via `fetch` (with `sendBeacon` fallback on page unload).
+`SourceMappedSpanExporter` is a `SpanExporter` that enriches exception events
+with debug IDs extracted from bundler-injected globals (`_debugIds` from
+Turbopack, `__DEBUG_IDS__` from the TC39 spec / webpack), then sends traces as
+OTLP/protobuf via `fetch` (with `sendBeacon` fallback on page unload).
 
 ```ts
 import { trace } from "@opentelemetry/api";
@@ -38,7 +42,9 @@ trace.setGlobalTracerProvider(provider);
 
 ### Traces Handler
 
-`createTracesHandler` returns a `(Request) => Promise<Response>` handler that accepts OTLP/protobuf traces, resolves exception stack traces using source maps from the provided store, and forwards the resolved spans to your exporter.
+`createTracesHandler` returns a `(Request) => Promise<Response>` handler that
+accepts OTLP/protobuf traces, resolves exception stacktraces using source maps
+from the provided store, and forwards the resolved spans to your exporter.
 
 ```ts
 // Next.js: app/api/sourcemaps/route.ts
@@ -53,7 +59,8 @@ export const POST = createTracesHandler({
 });
 ```
 
-The handler uses standard Web `Request`/`Response`, so it works with any runtime:
+The handler uses standard Web `Request`/`Response`, so it works with any
+runtime:
 
 ```ts
 // Bun
@@ -65,7 +72,9 @@ Deno.serve({ port: 8080 }, handler);
 
 ### Source Map Resolver
 
-`createSourceMapResolver` provides standalone stack trace resolution without a request handler. Useful when you need to resolve traces outside the HTTP request flow (e.g. in a queue consumer or background job).
+`createSourceMapResolver` provides standalone stacktrace resolution without a
+request handler. Useful when you need to resolve traces outside the HTTP request
+flow (e.g. in a queue consumer or background job).
 
 ```ts
 import { createSourceMapResolver } from "smapped-traces/resolve";
@@ -102,7 +111,8 @@ const store = createSqliteStore("./sourcemaps.db");
 
 #### HTTP Store
 
-Communicates with a remote store handler over HTTP. Pair with `createStoreHandler` on the server side.
+Communicates with a remote store handler over HTTP. Pair with
+`createStoreHandler` on the server side.
 
 ```ts
 import { createHttpStore } from "smapped-traces/store";
@@ -112,7 +122,9 @@ const store = createHttpStore("https://sourcemaps.internal");
 
 #### Store Handler
 
-`createStoreHandler` exposes a `SourceMapStore` as a REST API (`GET /:debugId`, `PUT /:debugId`). Deploy as a standalone service to share source maps across build and runtime environments.
+`createStoreHandler` exposes a `SourceMapStore` as a REST API (`GET /:debugId`,
+`PUT /:debugId`). Deploy as a standalone service to share source maps across
+build and runtime environments.
 
 ```ts
 import { createStoreHandler } from "smapped-traces/store";
@@ -141,7 +153,8 @@ interface SourceMapStore {
 
 ## Requirements
 
-- OpenTelemetry SDK v2+ (`@opentelemetry/sdk-trace ^2.0.0`, `@opentelemetry/core ^2.0.0`)
+- OpenTelemetry SDK v2+ (`@opentelemetry/sdk-trace ^2.0.0`,
+  `@opentelemetry/core ^2.0.0`)
 - `@opentelemetry/api ^1.9.0`
 
 ## License

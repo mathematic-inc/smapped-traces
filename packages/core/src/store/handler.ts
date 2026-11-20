@@ -24,7 +24,7 @@ export function createStoreHandler(store: SourceMapStore): (request: Request) =>
     const segments = url.pathname.split("/").filter(Boolean);
     const debugId = segments.at(-1);
 
-    if (!debugId) {
+    if (debugId === undefined) {
       return new Response(null, { status: 400 });
     }
 

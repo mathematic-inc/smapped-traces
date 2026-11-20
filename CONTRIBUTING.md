@@ -1,18 +1,25 @@
 # Contributing
 
-Mathematic's AI agents handle implementation and maintenance in this repository. Please propose changes in a GitHub Discussion before writing code.
+Mathematic's AI agents handle implementation and maintenance in this repository.
+Please propose changes in a GitHub Discussion before writing code.
 
 ## Propose a change
 
-1. [Start a Discussion](../../discussions/new).
+1. [Start a Discussion](https://github.com/mathematic-inc/smapped-traces/discussions/new).
 2. Explain the problem and the result you want.
 3. Wait for a Mathematic maintainer to review the proposal.
 
-If we accept the proposal, a Mathematic maintainer or one of our agents will implement it and open the pull request. When Mathematic implements a proposal, the implementation PR will link to the Discussion and credit its original author. Reviewing an unsolicited pull request often takes longer than building a reviewed proposal with our agents, so we review the idea first.
+If we accept the proposal, a Mathematic maintainer or one of our agents will
+implement it and open the pull request. When Mathematic implements a proposal,
+the implementation PR will link to the Discussion and credit its original
+author. Reviewing an unsolicited pull request often takes longer than building a
+reviewed proposal with our agents, so we review the idea first.
 
 ## Pull requests
 
-GitHub limits pull request creation to Mathematic maintainers and repository collaborators with write, maintain, or admin access, plus authorized maintenance agents.
+GitHub limits pull request creation to Mathematic maintainers and repository
+collaborators with write, maintain, or admin access, plus authorized maintenance
+agents.
 
 ## Maintainer setup
 
@@ -21,8 +28,12 @@ Install the pinned tools and dependencies:
 ```sh
 mise install
 mise exec -- pnpm install --frozen-lockfile
+mise run generate
 mise exec -- hk install
 ```
+
+`mise run generate` writes the settings files of the checking tools. Git ignores
+them. Change them in `.toolconfig.pkl`.
 
 Before opening a pull request, run:
 
@@ -31,5 +42,5 @@ mise exec -- pnpm run build
 mise exec -- pnpm run typecheck
 mise exec -- pnpm run test
 mise exec -- pnpm run audit
-mise exec -- hk check --all --slow
+mise run check
 ```
