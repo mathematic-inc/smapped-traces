@@ -21,8 +21,12 @@ Install the pinned tools and dependencies:
 ```sh
 mise install
 mise exec -- pnpm install --frozen-lockfile
+mise run generate
 mise exec -- hk install
 ```
+
+`mise run generate` writes the settings files of the checking tools. Git ignores
+them. Change them in `.toolconfig.pkl`.
 
 Before opening a pull request, run:
 
@@ -31,5 +35,5 @@ mise exec -- pnpm run build
 mise exec -- pnpm run typecheck
 mise exec -- pnpm run test
 mise exec -- pnpm run audit
-mise exec -- hk check --all --slow
+mise run check
 ```
