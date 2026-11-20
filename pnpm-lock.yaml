@@ -293,6 +293,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: 'catalog:'
         version: 3.1164.0
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.6
       smapped-traces:
         specifier: workspace:*
         version: link:../core
