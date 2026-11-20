@@ -50,9 +50,6 @@ type CompileArgs = Readonly<
  */
 type SourceMapWithDebugId = (RawSourceMap | RawIndexMap) & { readonly debugId: string };
 
-/**
- * Returns the source paths without the Turbopack prefix, resolved against the replacement prefix.
- */
 function transformSources(
   sources: readonly string[],
   replaceTurbopackSourcePrefix: string,
@@ -67,9 +64,6 @@ function transformSources(
   });
 }
 
-/**
- * Returns a copy of the source map with the Turbopack prefixes replaced.
- */
 function transformSourceMapPaths(
   sourceMap: SourceMapWithDebugId,
   replaceTurbopackSourcePrefix: string,

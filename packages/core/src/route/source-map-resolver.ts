@@ -20,9 +20,6 @@ export interface SourceMapResolverOptions {
   readonly store: SourceMapStore;
 }
 
-/**
- * Returns `null` for an empty name.
- */
 function nonEmpty(name: string | null): string | null {
   return name === "" ? null : name;
 }

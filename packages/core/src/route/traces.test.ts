@@ -75,9 +75,6 @@ function createExceptionEvent(stacktrace: string, debugIds?: readonly unknown[])
   };
 }
 
-/**
- * Returns the stacktrace of an exception event.
- */
 function stacktraceOf(event: TimedEvent): string {
   const stacktrace = event.attributes?.[ATTR_EXCEPTION_STACKTRACE];
   if (typeof stacktrace !== "string") {

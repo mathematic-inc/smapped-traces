@@ -20,8 +20,7 @@ const writeMap = async (relative: string, map: object): Promise<void> => {
   await writeFile(path, JSON.stringify(map));
 };
 
-// Vite types the plugin hooks as unions that need a plugin context. The plugin does not use `this`,
-// so the tests call the hooks as plain functions.
+// Vite types the plugin hooks as unions that need a plugin context. The plugin does not use `this`.
 function isConfigResolvedHook(value: unknown): value is (config: ResolvedConfig) => void {
   return typeof value === "function";
 }
