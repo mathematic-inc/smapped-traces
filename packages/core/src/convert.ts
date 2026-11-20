@@ -75,6 +75,10 @@ function hexToBytes(hex: string): Uint8Array {
   return bytes;
 }
 
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === "object" && value !== null;
+}
+
 /**
  * Convert an SdkAnyValue to protobuf AnyValue.
  */
@@ -113,9 +117,9 @@ function toAnyValue(value: SdkAnyValue): AnyValue {
       },
     });
   }
-  if (value !== null && typeof value === "object") {
+  if (isRecord(value)) {
     return create(AnyValueSchema, {
-      value: { case: "kvlistValue", value: { values: toKeyValues(value as Attributes) } },
+      value: { case: "kvlistValue", value: { values: toKeyValues(value) } },
     });
   }
   return create(AnyValueSchema, {});
@@ -124,8 +128,8 @@ function toAnyValue(value: SdkAnyValue): AnyValue {
 /**
  * Convert Attributes to protobuf KeyValue array.
  */
-function toKeyValues(attributes: Attributes | undefined): KeyValue[] {
-  if (!attributes) {
+function toKeyValues(attributes: Readonly<Record<string, unknown>> | undefined): KeyValue[] {
+  if (attributes === undefined) {
     return [];
   }
   const result: KeyValue[] = [];
@@ -271,19 +275,19 @@ function toProtoSpan(span: ReadableSpan): Span {
  * Group spans by resource and instrumentation scope.
  */
 function groupSpansByResourceAndScope(
-  spans: ReadableSpan[],
+  spans: readonly ReadableSpan[],
 ): Map<Resource, Map<InstrumentationScope, ReadableSpan[]>> {
   const resourceMap = new Map<Resource, Map<InstrumentationScope, ReadableSpan[]>>();
 
   for (const span of spans) {
     let scopeMap = resourceMap.get(span.resource);
-    if (!scopeMap) {
+    if (scopeMap === undefined) {
       scopeMap = new Map();
       resourceMap.set(span.resource, scopeMap);
     }
 
     let spanList = scopeMap.get(span.instrumentationScope);
-    if (!spanList) {
+    if (spanList === undefined) {
       spanList = [];
       scopeMap.set(span.instrumentationScope, spanList);
     }
@@ -297,7 +301,7 @@ function groupSpansByResourceAndScope(
 /**
  * Convert an array of ReadableSpans to protobuf TracesData.
  */
-export function toTracesData(spans: ReadableSpan[]): TracesData {
+export function toTracesData(spans: readonly ReadableSpan[]): TracesData {
   const resourceMap = groupSpansByResourceAndScope(spans);
   const resourceSpans: ResourceSpans[] = [];
 
@@ -353,9 +357,9 @@ function bytesToHex(bytes: Uint8Array): string {
 /**
  * Convert protobuf AnyValue to SDK SdkAnyValue.
  */
-function fromAnyValue(anyValue: AnyValue | undefined): SdkAnyValue | undefined {
-  if (!anyValue?.value) {
-    return;
+function fromAnyValue(anyValue: AnyValue | undefined): SdkAnyValue {
+  if (anyValue?.value === undefined) {
+    return undefined;
   }
 
   switch (anyValue.value.case) {
@@ -381,15 +385,17 @@ function fromAnyValue(anyValue: AnyValue | undefined): SdkAnyValue | undefined {
       return fromKeyValues(anyValue.value.value.values);
     case "bytesValue":
       return bytesToHex(anyValue.value.value);
+    case undefined:
+      return undefined;
     default:
-      return;
+      return undefined;
   }
 }
 
 /**
  * Convert protobuf KeyValue array to SDK Attributes.
  */
-function fromKeyValues(keyValues: KeyValue[]): Attributes {
+function fromKeyValues(keyValues: readonly KeyValue[]): Attributes {
   const result: Attributes = {};
   for (const kv of keyValues) {
     const value = fromAnyValue(kv.value);
@@ -438,6 +444,8 @@ function fromProtoSpanKind(kind: Span_SpanKind): SpanKind {
       return SpanKind.PRODUCER;
     case Span_SpanKind.CONSUMER:
       return SpanKind.CONSUMER;
+    case Span_SpanKind.UNSPECIFIED:
+      return SpanKind.INTERNAL;
     default:
       return SpanKind.INTERNAL;
   }
@@ -452,6 +460,8 @@ function fromProtoStatusCode(code: Status_StatusCode): SpanStatusCode {
       return SpanStatusCode.OK;
     case Status_StatusCode.ERROR:
       return SpanStatusCode.ERROR;
+    case Status_StatusCode.UNSET:
+      return SpanStatusCode.UNSET;
     default:
       return SpanStatusCode.UNSET;
   }
@@ -523,14 +533,15 @@ function fromProtoSpan(
       traceFlags: span.flags,
       isRemote: false,
     }),
-    parentSpanContext: parentSpanId
-      ? {
-          traceId,
-          spanId: parentSpanId,
-          traceFlags: span.flags,
-          isRemote: true,
-        }
-      : undefined,
+    parentSpanContext:
+      parentSpanId === undefined
+        ? undefined
+        : {
+            traceId,
+            spanId: parentSpanId,
+            traceFlags: span.flags,
+            isRemote: true,
+          },
     startTime,
     endTime,
     status: fromProtoStatus(span.status),

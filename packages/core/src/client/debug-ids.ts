@@ -14,21 +14,30 @@ import { parse as parseStackTrace } from "stacktrace-parser";
  * Maps stack trace patterns to debug ID UUIDs.
  * Used by Turbopack (`_debugIds`).
  */
-type StackTraceDebugIdMapping = Record<string, string>;
+type StackTraceDebugIdMapping = Readonly<Record<string, string>>;
 
 /**
  * Maps resource URLs directly to debug ID UUIDs.
  * Used by the TC39 spec (`__DEBUG_IDS__`).
  */
-type UrlDebugIdMapping = Record<string, string>;
+type UrlDebugIdMapping = Readonly<Record<string, string>>;
 
 interface DebugIdGlobals {
-  __DEBUG_IDS__?: UrlDebugIdMapping;
-  _debugIds?: StackTraceDebugIdMapping;
+  readonly __DEBUG_IDS__?: UrlDebugIdMapping;
+  readonly _debugIds?: StackTraceDebugIdMapping;
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, string>> {
+  return typeof value === "object" && value !== null;
 }
 
 function getGlobals(): DebugIdGlobals {
-  return globalThis as unknown as DebugIdGlobals;
+  const globals: Readonly<Record<string, unknown>> = globalThis;
+  const { __DEBUG_IDS__, _debugIds } = globals;
+  return {
+    ...(isRecord(__DEBUG_IDS__) && { __DEBUG_IDS__ }),
+    ...(isRecord(_debugIds) && { _debugIds }),
+  };
 }
 
 /**
@@ -97,7 +106,7 @@ export function getDebugIdsByUrl(): Map<string, string> {
     for (const [stackPattern, debugId] of Object.entries(globals._debugIds)) {
       const urls = extractFilesFromStack(stackPattern);
       const url = urls[0];
-      if (url && !result.has(url)) {
+      if (url !== undefined && url !== "" && !result.has(url)) {
         result.set(url, debugId);
       }
     }
@@ -134,7 +143,7 @@ export function extractDebugIdsFromStack(stackTrace: string): string[] {
 
   for (const file of extractFilesFromStack(stackTrace)) {
     const debugId = debugIdsByUrl.get(file);
-    if (debugId) {
+    if (debugId !== undefined && debugId !== "") {
       debugIds.add(debugId);
     }
   }

@@ -12,9 +12,9 @@ import { createSourceMapResolver, type SourceMapResolver } from "./source-map-re
  */
 export interface TracesHandlerOptions {
   /** The span exporter to forward resolved traces to. */
-  exporter: SpanExporter;
+  readonly exporter: SpanExporter;
   /** Source map storage backend. If omitted, traces are forwarded without resolution. */
-  store?: SourceMapStore;
+  readonly store?: SourceMapStore;
 }
 
 /**
@@ -47,9 +47,11 @@ async function resolveExceptionEvent(
   try {
     const resolvedStack = await sourceMapResolver.resolveStackTrace(stacktrace, validDebugIds);
 
-    const attrs = event.attributes as Record<string, unknown>;
-    attrs[ATTR_EXCEPTION_STACKTRACE] = resolvedStack;
-    attrs[`${ATTR_EXCEPTION_STACKTRACE}.original`] = stacktrace;
+    event.attributes = {
+      ...event.attributes,
+      [ATTR_EXCEPTION_STACKTRACE]: resolvedStack,
+      [`${ATTR_EXCEPTION_STACKTRACE}.original`]: stacktrace,
+    };
   } catch {
     // On resolution failure, keep original stack trace
   }
@@ -59,7 +61,7 @@ async function resolveExceptionEvent(
  * Resolves exception stack traces in all spans using source maps in-place.
  */
 async function resolveExceptionStackTraces(
-  spans: ReadableSpan[],
+  spans: readonly ReadableSpan[],
   sourceMapResolver: SourceMapResolver,
 ): Promise<void> {
   await Promise.all(
@@ -123,9 +125,7 @@ export function createTracesHandler(options: TracesHandlerOptions) {
     if (!store) {
       return null;
     }
-    if (!resolver) {
-      resolver = createSourceMapResolver({ store });
-    }
+    resolver ??= createSourceMapResolver({ store });
     return resolver;
   }
 

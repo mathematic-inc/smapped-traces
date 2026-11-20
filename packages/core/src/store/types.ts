@@ -8,17 +8,17 @@ export interface SourceMapStore {
   /**
    * Releases resources held by the store.
    */
-  close?(): void;
+  readonly close?: () => void;
   /**
    * Retrieves a source map by debug ID.
    * @returns The source map JSON string, or null if not found.
    */
-  get(debugId: string): string | null | Promise<string | null>;
+  readonly get: (debugId: string) => string | null | Promise<string | null>;
 
   /**
    * Stores a source map by debug ID.
    * @param debugId The debug ID (UUID) for the source map.
    * @param content The source map JSON string.
    */
-  put(debugId: string, content: string): void | Promise<void>;
+  readonly put: (debugId: string, content: string) => void | Promise<void>;
 }

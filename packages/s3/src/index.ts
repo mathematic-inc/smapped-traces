@@ -6,11 +6,11 @@ import type { SourceMapStore } from "smapped-traces/store";
  */
 export interface S3StoreOptions {
   /** S3 bucket name. */
-  bucket: string;
+  readonly bucket: string;
   /** Pre-configured S3 client. Works with AWS S3, GCS, and Cloudflare R2. */
-  client: S3Client;
+  readonly client: S3Client;
   /** Key prefix for source map objects (e.g. "sourcemaps/"). */
-  prefix?: string;
+  readonly prefix?: string;
 }
 
 /**
